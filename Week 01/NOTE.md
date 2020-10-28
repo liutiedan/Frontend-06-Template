@@ -1,1 +1,2 @@
-Tic-tac-toe学习笔记
+学习笔记
+Tic-Tac-Toe
