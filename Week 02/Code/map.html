@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
 <style>
+    #box{
+        margin-left: 300px;
+    }
     .cell{
         display: inline-block;
         line-height: 7px;
@@ -13,26 +16,30 @@
         background-color: gray;
         border-bottom: solid 1px white;
         border-right: solid 1px white;
-        vertical-align: top;
+        vertical-align: middle;
     }
     #container{
         width: 701px;
+        height: 701px;
     }
 </style>
 </head>
 <body>
-    <div id="container"></div>
-    <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+    <div id="box">
+        <div id="container"></div>
+        <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+    </div>
+    
 <script>
 
 let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
-
-let contianer = document.getElementById('container')
+// console.log(map)
+let container = document.getElementById('container')
 for(let x = 0; x < 100; x++){
     for(let y = 0; y < 100; y++){
         let cell = document.createElement('div')
-        cell.classList.add(cell)
-
+        cell.classList.add('cell')
+        
         if(map[100 * x + y] == 1){//判断有无墙
             cell.style.backgroundColor = "black";
         }
@@ -50,7 +57,17 @@ for(let x = 0; x < 100; x++){
         })
         container.appendChild(cell)
     }
+    // container.appendChild(document.createElement('br'))
 }
+
+let mousedown = false
+let clear = false
+document.addEventListener('mousedown', (e) => {
+    mousedown = true
+    clear = (e.which === 3)
+})
+document.addEventListener('mouseup', () => {mousedown = false})
+document.addEventListener('contextmenu', e => e.preventDefault())
 
 </script>
 </body>
