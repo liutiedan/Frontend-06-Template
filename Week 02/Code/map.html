@@ -10,17 +10,18 @@
     }
     .cell{
         display: inline-block;
-        line-height: 7px;
+        /* line-height: 7px; */
         width: 6px;
         height: 6px;
         background-color: gray;
         border-bottom: solid 1px white;
         border-right: solid 1px white;
-        vertical-align: middle;
+        vertical-align: top;
     }
     #container{
         width: 701px;
-        height: 701px;
+        /* height: 701px; */
+        line-height: 7px;
     }
 </style>
 </head>
@@ -39,7 +40,7 @@ for(let x = 0; x < 100; x++){
     for(let y = 0; y < 100; y++){
         let cell = document.createElement('div')
         cell.classList.add('cell')
-        
+
         if(map[100 * x + y] == 1){//判断有无墙
             cell.style.backgroundColor = "black";
         }
@@ -50,7 +51,9 @@ for(let x = 0; x < 100; x++){
                     cell.style.backgroundColor = ""
                     map[100 * x + y] = 0
                 }else{
+                    //视觉变成墙
                     cell.style.backgroundColor = 'black'
+                    //逻辑上变成墙
                     map[100 * x + y] = 1
                 }
             }
@@ -62,12 +65,53 @@ for(let x = 0; x < 100; x++){
 
 let mousedown = false
 let clear = false
+//按下鼠标左键，mousedown设为true使
 document.addEventListener('mousedown', (e) => {
     mousedown = true
     clear = (e.which === 3)
 })
 document.addEventListener('mouseup', () => {mousedown = false})
+//防止右键时出现菜单
 document.addEventListener('contextmenu', e => e.preventDefault())
+
+
+function sleep(t){
+    return new Promise(function(resolve){
+        setTimeout(resolve,t)
+    }) 
+}
+//async函数如果想要同步调用都要用await
+async function path(map, start, end){
+    var queue = [start]
+
+    async function insert(x, y){
+        if(x < 0 || x >= 100 || y < 0 || y >= 100)
+            return ;
+        if(map[x * 100 + y])
+            return ;
+        
+        await sleep(30)
+        container.children[100 * x + y].style.backgroundColor = 'lightgreen'
+        // console.log(container.children)
+        map[x * 100 + y] = 2//代表遍历过了
+        queue.push([x, y])
+    }
+
+    while(queue.length){
+        let [x, y] = queue.shift()//shift用于把数组第一个元素删除，并返回元素值
+        console.log(x, y);
+        if(end[0] === x && end[1] === y){
+            return true
+        }
+        await insert(x - 1, y)
+        await insert(x, y - 1)
+        await insert(x + 1, y)
+        await insert(x, y + 1)
+    }
+    return false
+}
+
+
 
 </script>
 </body>
