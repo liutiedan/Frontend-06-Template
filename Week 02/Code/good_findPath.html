@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+<style>
+    #box{
+        margin-left: 300px;
+    }
+    .cell{
+        display: inline-block;
+        /* line-height: 7px; */
+        width: 6px;
+        height: 6px;
+        background-color: gray;
+        border-bottom: solid 1px white;
+        border-right: solid 1px white;
+        vertical-align: top;
+    }
+    #container{
+        width: 701px;
+        /* height: 701px; */
+        line-height: 7px;
+    }
+</style>
+</head>
+<body>
+    <div id="box">
+        <div id="container"></div>
+        <button onclick="localStorage['map'] = JSON.stringify(map)">save</button>
+    </div>
+    
+<script>
+
+class Sorted{
+    constructor(data, compare){
+        this.data = data.slice();
+        this.compare = compare || ((a,b) => a - b);
+    }
+    take(){
+        if(!this.data.length)
+            return;
+        let min = this.data[0];
+        let minIndex = 0;
+
+        for(let i = 1; i < this.data.length; i++){
+            if(this.compare(this.data[i], min) < 0){
+                min = this.data[i];
+                minIndex = i;
+            }
+        }
+
+        this.data[minIndex] = this.data[this.data.length - 1];
+        this.data.pop();
+        return min;
+    }
+    give(v){
+        this.data.push(v);
+    }
+}
+
+
+class BinaryHeap{
+    constructor(data, compare){
+        this.data = data;
+        this.compare = compare;
+    }
+    take(){
+        if(!this.data.length){
+            return ;
+        }
+        let min = this.data[0];
+        let i = 0;
+        //fix heap
+        while(i < this.data.length){
+            if(i * 2 + 1 >= this.data.length)
+                break;
+            if(i * 2 + 2 >= this.data.length){
+                this.data[i] = this.data[i * 2 + 1];
+                i = i * 2 + 1;
+                break;
+            }
+            if(this.compare(this.data[i * 2 + 1], this.data[i * 2 + 2]) < 0){
+                this.data[i] = this.data[i * 2 + 1];
+                i = i * 2 + 1;
+            }else{
+                this.data[i] = this.data[i * 2 + 2]；
+                i = i * 2 + 2;
+            }
+        }
+        if(i < this.data.length - 1){
+            this.insertAt(i, this.data.pop());
+        }else{
+            this.data.pop();
+        }
+        return min;
+    }
+
+    insertAt(i, v){
+        this.data[i] = v;
+        while(i > 0 && this.compare(v, this.data[Math.floor((i - 1) / 2)]) < 0){
+            this.data[i] = this.data[Math.floor((i - 1) / 2)];
+            this.data[Math.floor((i - 1) / 2)] = v;
+            i = Math.floor((i - 1) / 2);
+        }
+    }
+
+    insert(v){
+        this.insertAt(this.data.length, v);
+    }
+    get length(){
+        return this.data.length;
+    }
+}
+
+// let s = new Sorted([])
+
+let map = localStorage['map'] ? JSON.parse(localStorage['map']) : Array(10000).fill(0);
+// console.log(map)
+let container = document.getElementById('container')
+for(let x = 0; x < 100; x++){
+    for(let y = 0; y < 100; y++){
+        let cell = document.createElement('div')
+        cell.classList.add('cell')
+
+        if(map[100 * x + y] == 1){//判断有无墙
+            cell.style.backgroundColor = "black";
+        }
+
+        cell.addEventListener('mousemove', () => {
+            if(mousedown){
+                if(clear){
+                    cell.style.backgroundColor = ""
+                    map[100 * x + y] = 0
+                }else{
+                    //视觉变成墙
+                    cell.style.backgroundColor = 'black'
+                    //逻辑上变成墙
+                    map[100 * x + y] = 1
+                }
+            }
+        })
+        container.appendChild(cell)
+    }
+    // container.appendChild(document.createElement('br'))
+}
+
+let mousedown = false
+let clear = false
+//按下鼠标左键，mousedown设为true使
+document.addEventListener('mousedown', (e) => {
+    mousedown = true
+    //判断鼠标按键，如果是右键则把这个块清空
+    clear = (e.which === 3)
+})
+document.addEventListener('mouseup', () => {mousedown = false})
+//防止右键时出现菜单
+document.addEventListener('contextmenu', e => e.preventDefault())
+
+
+function sleep(t){
+    return new Promise(function(resolve){
+        setTimeout(resolve,t)
+    })
+}
+//async函数如果想要同步调用都要用await
+async function findPath(map, start, end){
+    let table = Object.create(map)//一维数组的好处，可以直接复制
+    // let queue = [start]
+    // let queue = new Sorted([start], (a, b) => distance(a) - distance(b));
+    let queue = new BinaryHeap([start], (a, b) => distance(a) - distance(b));
+    async function insert(x, y, pre){
+        if(x < 0 || x >= 100 || y < 0 || y >= 100)
+            return ;
+        if(table[x * 100 + y])  //1我这里写的map？？？？？？？？？？？？？？？？？？2如果想找到最短路径在这两行
+            return ;
+        
+        await sleep(5)
+        container.children[100 * x + y].style.backgroundColor = 'lightgreen';
+        table[x * 100 + y] = pre;//
+        // console.log("前驱",table[x * 100 + y])
+        // map[x * 100 + y] = 2
+        // queue.give([x, y]);
+        // queue.push([x, y]);
+        queue.insert([x, y])
+    }
+
+    function distance(point){
+        return (point[0] - end[0]) ** 2 + (point[1] - end[1]) **2;
+    }
+    console.log(queue)
+    while(queue.data.length){
+        // var [x, y] = queue.shift();//shift用于把数组第一个元素删除，并返回元素值
+        let [x, y] = queue.take();
+        console.log(x, y);
+        if(end[0] === x && end[1] === y){
+            console.log("table:",table)
+            let path = [];
+
+            while(x != start[0] || y != start[1]){
+                path.push(table[x * 100 + y])     //我这里写的map？？？？？？？？？？？？？？
+                console.log('赋值前', x * 100 + y, table[x * 100 + y]);
+                [x, y] = table[x * 100 + y];//解构赋值
+                console.log("赋值后", x * 100 + y, table[x * 100 + y]);
+                await sleep(30);
+                container.children[100 * x + y].style.backgroundColor = 'red';
+            }
+            console.log("path:",path);
+            return path;
+        }
+
+        await insert(x - 1, y, [x, y])
+        await insert(x, y - 1, [x, y])
+        await insert(x + 1, y, [x, y])
+        await insert(x, y + 1, [x, y])
+
+        await insert(x - 1, y - 1, [x, y])
+        await insert(x + 1, y - 1, [x, y])
+        await insert(x - 1, y + 1, [x, y])
+        await insert(x + 1, y + 1, [x, y])
+    }
+
+    return null
+}
+
+// findPath(map, [0,0], [30,30])
+
+</script>
+</body>
+</html>
