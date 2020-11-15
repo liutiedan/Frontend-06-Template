@@ -1,3 +1,153 @@
+# 使用LL算法构建AST
+AST：抽象语法树
+纯文本转换成AST分为两步：词法分析和语法分析
+## 四则运算
+- TokenNumber
+0 1 2 3 4 5 6 7 8 9的组合
+- Operator
++ - * / 之一
+- whitespace
+<SP>
+- LineTerminator
+<LF><CR>
+
+## 词法分析
+
+```js
+function* tokenize (code) {
+  const regexp = /([0-9\.]+)|([ \t]+)|([\r\n]+)|([\*]+)|([\/]+)|([\+]+)|([\-]+)/g
+  const dictionary = ["Number", "Whitespace", "LineTerminator", "*", "/", "+", "-"]
+  let result = null, lastIndex = 0
+  while (true) {
+    lastIndex = regexp.lastIndex
+    result = regexp.exec(code)
+    if (!result) break
+    if (regexp.lastIndex - lastIndex > result[0].length) break
+
+    let token = {
+      type: null,
+      value: null
+    }
+
+    for (let i = 1; i <= dictionary.length; i++) {
+      if (result[i]) token.type = dictionary[i-1]
+    }
+    token.value = result[0]
+
+    yield token
+  }}
+
+for (let token of tokenize("1024 + 10 * 25")) {
+  console.log(token)}
+```
+## 语法分析
+```js
+    let source = [];
+
+    for(let token of tokenize("1 + 2 * 5 + 3")){
+        // console.log(token);
+        if(token.type !== "Whitespace" && token.type !== "LineTerminator")
+            source.push(token);
+    }
+
+    function Expression(tokens){
+        if(source[0].type === "AdditiveExpression" && source[1] && source[1].type === "EOF"){
+            let node = {
+                type: "Expression",
+                children: [source.shift(), source.shift()]
+            }
+            source.unshift(node);
+            return node;
+        }
+        AdditiveExpression(source);
+        return Expression(source);
+    }
+
+    //加减
+    function AdditiveExpression(source){
+        if(source[0].type === "MultiplicativeExpression"){
+            let node = {
+                type: "AdditiveExpression",
+                children: [source[0]]
+            }
+            source[0] = node;
+            return AdditiveExpression(source);
+        }
+        if(source[0].type === "AdditiveExpression" && source[1] && source[1].type === "*"){
+            let node = {
+                type: "MultiplicativeExpression",
+                operator: "+",
+                children: []
+            }
+            node.children.push(source.shift());
+            node.children.push(source.shift());
+            MultiplicativeExpression(source);
+            node.children.push(source.shift());
+            source.unshift(node);
+            return AdditiveExpression(source);
+        }
+        if(source[0].type === "AdditiveExpression" && source[1] && source[1].type === "/"){
+            let node = {
+                type: "AdditiveExpression",
+                operator: "-",
+                children: []
+            }
+            node.children.push(source.shift());
+            node.children.push(source.shift());
+            MultiplicativeExpression(source);
+            node.children.push(source.shift());
+            source.unshift(node);
+            return AdditiveExpression(source);
+        }
+        if(source[0].type === "AdditiveExpression"){
+            return source[0];
+        }
+        MultiplicativeExpression(source);
+        return AdditiveExpression(source);
+    }
+
+    //乘除
+    function MultiplicativeExpression(source){
+        if(source[0].type === "Number"){
+            let node = {
+                type: "MultiplicativeExpression",
+                children: [source[0]]
+            }
+            source[0] = node;
+            return MultiplicativeExpression(source);
+        }
+        if(source[0].type === "MultiplicativeExpression" && source[1] && source[1].type === "*"){
+            let node = {
+                type: "MultiplicativeExpression",
+                operator: "*",
+                children: []
+            }
+            node.children.push(source.shift());
+            node.children.push(source.shift());
+            node.children.push(source.shift());
+            source.unshift(node);
+            return MultiplicativeExpression(source);
+        }
+        if(source[0].type === "MultiplicativeExpression" && source[1] && source[1].type === "/"){
+            let node = {
+                type: "MultiplicativeExpression",
+                operator: "/",
+                children: []
+            }
+            node.children.push(source.shift());
+            node.children.push(source.shift());
+            node.children.push(source.shift());
+            source.unshift(node);
+            return MultiplicativeExpression(source);
+        }
+        if(source[0].type === "MultiplicativeExpression"){
+            return source[0];
+        }
+        return MultiplicativeExpression(source);
+    }
+
+```
+# 重学前端 模块一
 # JavaScript类型
 JavaScript模块从运行时、文法和执行过程三个角度剖析JS的知识体系
 ![39ede9e7f903bc429e0c5b57ab7947a5.png](en-resource://database/2488:1)
