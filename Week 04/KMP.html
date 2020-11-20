@@ -1,0 +1,49 @@
+<script>
+    function KMP(source, pattern){
+        //计算table
+        //abcdabce
+        //00000123
+        let table = new Array(pattern.length).fill(0);
+        {
+            let i = 1, j = 0;
+            while(i < pattern.length){
+                if(pattern[i] === pattern[j]){
+                    ++i, ++j;
+                    table[i] = j;
+                }else{
+                    if(j > 0){
+                        j = table[j];
+                    }else{
+                        // table[i] = j;
+                        ++i;
+                    }
+                }
+            }
+            console.log(table);
+        }
+        //匹配
+        {
+            let i = 0, j = 0;
+            while(i < source.length){
+                
+                if(pattern[j] === source[i]){
+                    ++i, ++j;
+                    if(j === pattern.length){
+                        return true;
+                    }
+                }else{
+                    if(j > 0){
+                        j = table[j];
+                    }else{
+                        ++i;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+// console.log(KMP("aabaabaaacx","aabaaac"));
+
+console.log(KMP("abc","abc"));
+</script>
