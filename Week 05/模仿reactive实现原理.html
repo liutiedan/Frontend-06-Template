@@ -1,0 +1,29 @@
+<script>
+    let object = {
+        a: 1,
+        b: 2
+    }
+    //通过reactive相当于对object进行了代理
+    //监听了设置属性的行为
+    let po = reactive(object);
+
+    function reactive(object){
+        return new Proxy(object, {
+            set(obj, prop, val){
+                obj[prop] = val;
+                console.log(obj, prop, val);
+                return obj[prop];
+            },
+            get(obj, prop){
+                console.log(obj, prop);
+                return obj[prop];
+            }
+        })
+    }
+
+    // let po = new Proxy(object, {
+    //     set(obj, prop, val){
+    //         console.log(obj, prop, val);
+    //     }
+    // })
+</script>
