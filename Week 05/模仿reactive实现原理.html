@@ -1,25 +1,50 @@
 <script>
-    let callbacks = [];
+    // let callbacks = [];
+    //让object作为一个key来找到reactivies
+    let callbacks = new Map();
+
+    let usedReactivties = [];
+
     let object = {
         a: 1,
         b: 2
     }
     //通过reactive相当于对object进行了代理
     //监听了设置属性的行为
-    let po = reactive(object);
+    let po = reactive(object);//如果产生了po对象那么一定会在get里面产生注册行为
 
     effect(() => {
         console.log(po.a);
     })
 
     function effect(callback){
-        callbacks.push(callback);
+        // callbacks.push(callback);
+        usedReactivties = [];
+        callback();
+        console.log(usedReactivties);
+        for(let reactivity of reactivities){
+            console.log("这是个啥:",reactivity);
+            if(!callbacks.has(reactivity))
+                callbacks.set(reactivity[0], new Map());
+            if(!callbacks.get(reactivity[0]).has(reactivity[1]))
+                callbacks.get(reactivity[0]).set(reactivity[1], []);
+            callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        } 
+        
     }
 
     function reactive(object){
         return new Proxy(object, {
             set(obj, prop, val){
                 obj[prop] = val;
+                if(callbacks.get(obj)){
+                    if(callbacks.get(obj).get(prop)){//有对象有属性
+                        for(let callback of callbacks.get(obj).get(prop)){
+                            callback();
+                        }
+                    }
+                }
+
                 for(let callback of callbacks){
                     // console.log("a");
                     callback();
@@ -28,7 +53,8 @@
                 return obj[prop];
             },
             get(obj, prop){
-                console.log(obj, prop);
+                // console.log(obj, prop);
+                usedReactivties.push([obj, prop]);//effect结束之后就知道吊了那些
                 return obj[prop];
             }
         })
