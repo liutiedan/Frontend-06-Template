@@ -1,0 +1,71 @@
+<script>
+    // let callbacks = [];
+    //让object作为一个key来找到reactivies
+    let callbacks = new Map();
+    //当每个对象调用reactivity的时候，加一个缓存
+    let reactivities = new Map();
+
+    let usedReactivties = [];
+
+    let object = {
+        a: {b : 3},
+        b: 2
+    }
+    //通过reactive相当于对object进行了代理
+    //监听了设置属性的行为
+    let po = reactive(object);//如果产生了po对象那么一定会在get里面产生注册行为
+
+    effect(() => {
+        console.log(po.a.b);
+    })
+
+    function effect(callback){
+        // callbacks.add(callback);
+        usedReactivties = [];
+        callback();
+        console.log(usedReactivties);
+        for(let reactivity of reactivities){
+            console.log("这是个啥:",reactivity);
+            if(!callbacks.has(reactivity))
+                callbacks.set(reactivity[0], new Map());
+            if(!callbacks.get(reactivity[0]).has(reactivity[1]))
+                callbacks.get(reactivity[0]).set(reactivity[1], []);
+            callbacks.get(reactivity[0]).get(reactivity[1]).push(callback);
+        } 
+        
+    }
+
+    function reactive(object){
+        if(reactivities.has(object)){
+            return reactivities.get(object);
+        }
+        let proxy = new Proxy(object, {
+            set(obj, prop, val){
+                obj[prop] = val;
+                if(callbacks.get(obj)){
+                    if(callbacks.get(obj).get(prop)){//有对象有属性
+                        for(let callback of callbacks.get(obj).get(prop)){
+                            callback();
+                        }
+                    }
+                }
+
+                // for(let callback of callbacks){
+                //     callback();
+                // }
+                // console.log(obj, prop, val);
+                return obj[prop];
+            },
+            get(obj, prop){
+                usedReactivties.push([obj, prop]);//effect结束之后就知道吊了那些
+                if(typeof obj[prop] == "object"){
+                    return reactive(obj[prop]);
+                }
+                return obj[prop];
+            }
+        })
+        reactivities.set(object, proxy);
+        return proxy;
+    }
+
+</script>
