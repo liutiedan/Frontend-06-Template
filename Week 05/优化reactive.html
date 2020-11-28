@@ -5,7 +5,7 @@
     //当每个对象调用reactivity的时候，加一个缓存
     let reactivities = new Map();
 
-    let usedReactivties = [];
+    let usedReactivities = [];
 
     let object = {
         a: {b : 3},
@@ -21,10 +21,10 @@
 
     function effect(callback){
         // callbacks.add(callback);
-        usedReactivties = [];
+        usedReactivities = [];
         callback();
-        console.log(usedReactivties);
-        for(let reactivity of reactivities){
+        console.log(usedReactivities);
+        for(let reactivity of usedReactivities){
             console.log("这是个啥:",reactivity);
             if(!callbacks.has(reactivity))
                 callbacks.set(reactivity[0], new Map());
@@ -57,7 +57,7 @@
                 return obj[prop];
             },
             get(obj, prop){
-                usedReactivties.push([obj, prop]);//effect结束之后就知道吊了那些
+                usedReactivities.push([obj, prop]);//effect结束之后就知道吊了那些
                 if(typeof obj[prop] == "object"){
                     return reactive(obj[prop]);
                 }
