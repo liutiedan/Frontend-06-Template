@@ -1,7 +1,7 @@
 <input id="r" type="range" min=0 max=255/>
 <input id="g" type="range" min=0 max=255/>
 <input id="b" type="range" min=0 max=255/>
-<div id="color" style="width: 180px; height: 200px;"></div>
+<div id="color" style="width: 200px; height: 200px;"></div>
 <script>
     // let callbacks = [];
     //让object作为一个key来找到reactivies
@@ -54,7 +54,7 @@
         // console.log(usedReactivties);
         for(let reactivity of usedReactivities){
             console.log("这是个啥:",reactivity);
-            if(!callbacks.has(reactivity))
+            if(!callbacks.has(reactivity[0]))
                 callbacks.set(reactivity[0], new Map());
             if(!callbacks.get(reactivity[0]).has(reactivity[1]))
                 callbacks.get(reactivity[0]).set(reactivity[1], []);
@@ -86,7 +86,7 @@
             },
             get(obj, prop){
                 usedReactivities.push([obj, prop]);//effect结束之后就知道吊了那些
-                if(typeof obj[prop] == "object"){
+                if(typeof obj[prop] === "object"){
                     return reactive(obj[prop]);
                 }
                 return obj[prop];
