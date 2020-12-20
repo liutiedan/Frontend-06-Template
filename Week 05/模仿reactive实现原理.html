@@ -3,7 +3,7 @@
     //让object作为一个key来找到reactivies
     let callbacks = new Map();
 
-    let usedReactivties = [];
+    let usedReactivities = [];
 
     let object = {
         a: 1,
@@ -22,7 +22,7 @@
         usedReactivties = [];
         callback();
         console.log(usedReactivties);
-        for(let reactivity of reactivities){
+        for(let reactivity of useReactivities){
             console.log("这是个啥:",reactivity);
             if(!callbacks.has(reactivity))
                 callbacks.set(reactivity[0], new Map());
@@ -54,7 +54,7 @@
             },
             get(obj, prop){
                 // console.log(obj, prop);
-                usedReactivties.push([obj, prop]);//effect结束之后就知道吊了那些
+                usedReactivties.push([obj, prop]);//effect结束之后就知道调了哪些
                 return obj[prop];
             }
         })

@@ -1,0 +1,20 @@
+<script>
+    function match(str){
+        let flag = false;
+        for(let c of str){
+            if(c === 'a'){
+                flag = true;
+                console.log('a');
+            }
+            else if(flag && c === 'b'){
+                return true;
+            }
+            else{
+                flag = false;
+            }
+        }
+        return false;
+    }
+
+    console.log(match('cdefabfeas'))
+</script>
